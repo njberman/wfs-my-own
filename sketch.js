@@ -11,58 +11,58 @@ function preload() {
   images.push(loadImage('./imgs/pipe-h.png'));     // 7
 }
 
-const rules = [
+const RULES = [
   {
     UP: [0, 2, 3, 7],
+    LEFT: [0, 3, 5, 6],
     RIGHT: [0, 2, 4, 6],
     DOWN: [0, 4, 5, 7],
-    LEFT: [0, 3, 5, 6],
   },
   {
     UP: [1, 4, 5, 6],
+    LEFT: [1, 2, 4, 7],
     RIGHT: [1, 3, 5, 7],
     DOWN: [1, 2, 3, 6],
-    LEFT: [1, 2, 4, 7],
   },
   {
     UP: [1, 4, 5, 6],
+    LEFT: [0, 3, 5, 6],
     RIGHT: [1, 3, 5, 7],
     DOWN: [0, 4, 5, 7],
-    LEFT: [0, 3, 5, 6],
   },
   {
     UP: [1, 4, 5, 6],
+    LEFT: [1, 2, 4, 7],
     RIGHT: [0, 2, 4, 6],
     DOWN: [0, 4, 5, 7],
-    LEFT: [1, 2, 4, 7],
-  },
-  {
-    UP: [0, 2, 3, 7],
-    RIGHT: [1, 3, 5, 7],
-    DOWN: [1, 2, 3, 6],
-    LEFT: [0, 3, 5, 6],
   },
   {
     UP: [0, 2, 3, 7],
+    LEFT: [0, 3, 5, 6],
+    RIGHT: [1, 3, 5, 7],
+    DOWN: [1, 2, 3, 6],
+  },
+  {
+    UP: [0, 2, 3, 7],
+    LEFT: [1, 2, 4, 7],
     RIGHT: [0, 2, 4, 6],
     DOWN: [1, 2, 3, 6],
-    LEFT: [1, 2, 4, 7],
   },
   {
     UP: [1, 4, 5, 6],
+    LEFT: [0, 2, 4, 6],
     RIGHT: [0, 2, 4, 6],
     DOWN: [0, 2, 4, 6],
-    LEFT: [0, 2, 4, 6],
   },
   {
     UP: [0, 2, 3, 7],
+    LEFT: [1, 2, 4, 7],
     RIGHT: [1, 3, 5, 7],
     DOWN: [0, 4, 5, 7],
-    LEFT: [1, 2, 4, 7],
   },
 ];
 
-const GRID_SIZE = 9;
+const GRID_SIZE = 49;
 
 let grid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => undefined));
 
@@ -74,6 +74,9 @@ function setup() {
   createCanvas(600, 600);
 
   grid[3][2] = 1;
+  grid[4][3] = 2;
+  grid[5][2] = 5;
+  grid[4][1] = 7;
 }
 
 function draw() {
@@ -91,12 +94,75 @@ function draw() {
       image(images[grid[i][j]], j * width / GRID_SIZE, i * height / GRID_SIZE, width / GRID_SIZE, height / GRID_SIZE);
     }
   }
+
+  if (grid.some(row => row.some(cell => cell === undefined))) iterate();
+  else console.log('Finished!');
 }
 
-function findPossible() {
-  let possible = [];
+function keyPressed() {
+  if (key === ' ') {
+    iterate();
+  }
+}
 
+function mousePressed() {
+  findPossible(Math.floor(mouseY / (height / GRID_SIZE)), Math.floor(mouseX / (width / GRID_SIZE)));
+}
+
+function iterate() {
+  function findWithLowestEntropy(n) {
+    if (n === undefined) n = 1;
+
+    let cellsWithEntropyN = [];
+    for (let i = 0; i < GRID_SIZE; i++) {
+      for (let j = 0; j < GRID_SIZE; j++) {
+        if (grid[i][j] !== undefined) continue;
+        const possible = findPossible(i, j);
+
+        if (possible.length === n) cellsWithEntropyN.push({ possible, i, j, n });
+      }
+    }
+
+    if (cellsWithEntropyN.length === 0) return findWithLowestEntropy(n + 1);
+
+    return cellsWithEntropyN;
+  }
+
+  const lowestEntropyCells = findWithLowestEntropy();
+  const randomIndex = Math.floor(Math.random() * (lowestEntropyCells.length - 1));
+
+  const cellToUpdate = lowestEntropyCells[randomIndex];
+
+  grid[cellToUpdate.i][cellToUpdate.j] = cellToUpdate.possible[Math.floor(Math.random() * (cellToUpdate.n - 1))];
+  return;
+}
+
+function getCommonElements(arrays) {
+  return [...arrays.reduce((acc, curr) =>
+    new Set(curr.filter(x => acc.has(x))),
+    new Set(arrays[0])
+  )];
+}
+
+function findPossible(i, j) {
   let neighbours = [];
-  // TODO FIGURE OUT NEIGHBOURS AND TAKE INTO ACCOUNT EDGE CASES
+  for (let y = -1; y <= 1; y++) {
+    for (let x = -1; x <= 1; x++) {
+      if (Math.abs(y) === Math.abs(x)) continue;
+      if (i + y < 0 || j + x < 0 || i + y >= GRID_SIZE || j + x >= GRID_SIZE) {
+        neighbours.push(undefined);
+        continue;
+      }
+      neighbours.push(grid[i + y][j + x]);
+    }
+  }
 
+  let possibleFromEachNeighbour = [];
+  for (let n = 0; n < 4; n++) {
+    if (neighbours[n] === undefined) continue;
+    const rulesForNeighbour = RULES[neighbours[n]];
+    possibleFromEachNeighbour.push(rulesForNeighbour[Object.keys(rulesForNeighbour)[3 - n]]);
+  }
+
+  return getCommonElements(possibleFromEachNeighbour);
 }
