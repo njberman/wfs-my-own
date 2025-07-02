@@ -1,14 +1,14 @@
 let images = [];
 
 function preload() {
-  images.push(loadImage('./imgs/blank.png'));      // 0
-  images.push(loadImage('./imgs/cross.png'));      // 1
-  images.push(loadImage('./imgs/corner-ne.png'));  // 2
-  images.push(loadImage('./imgs/corner-nw.png'));  // 3
-  images.push(loadImage('./imgs/corner-se.png'));  // 4
-  images.push(loadImage('./imgs/corner-sw.png'));  // 5
-  images.push(loadImage('./imgs/pipe-v.png'));     // 6
-  images.push(loadImage('./imgs/pipe-h.png'));     // 7
+  images.push(loadImage('./imgs/easy/blank.png'));      // 0
+  images.push(loadImage('./imgs/easy/cross.png'));      // 1
+  images.push(loadImage('./imgs/easy/corner-ne.png'));  // 2
+  images.push(loadImage('./imgs/easy/corner-nw.png'));  // 3
+  images.push(loadImage('./imgs/easy/corner-se.png'));  // 4
+  images.push(loadImage('./imgs/easy/corner-sw.png'));  // 5
+  images.push(loadImage('./imgs/easy/pipe-v.png'));     // 6
+  images.push(loadImage('./imgs/easy/pipe-h.png'));     // 7
 }
 
 const RULES = [
@@ -66,6 +66,8 @@ const GRID_SIZE = 49;
 
 let grid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => undefined));
 
+let generating = true;
+
 function copyArray(array) {
   return array.map(row => row.slice());
 }
@@ -95,13 +97,13 @@ function draw() {
     }
   }
 
-  if (grid.some(row => row.some(cell => cell === undefined))) iterate();
-  else console.log('Finished!');
+  if (grid.some(row => row.some(cell => cell === undefined)) && generating) iterate();
+  else if (generating) console.log('Finished!');
 }
 
 function keyPressed() {
   if (key === ' ') {
-    iterate();
+    generating = !generating;
   }
 }
 
