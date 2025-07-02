@@ -1,84 +1,108 @@
 let images = [];
 
+let RULES;
+
+const ALL_POSSIBLE_BORDERS = generateAllPossibleBorders();
+
 function preload() {
-  images.push(loadImage('./imgs/easy/blank.png'));      // 0
-  images.push(loadImage('./imgs/easy/cross.png'));      // 1
-  images.push(loadImage('./imgs/easy/corner-ne.png'));  // 2
-  images.push(loadImage('./imgs/easy/corner-nw.png'));  // 3
-  images.push(loadImage('./imgs/easy/corner-se.png'));  // 4
-  images.push(loadImage('./imgs/easy/corner-sw.png'));  // 5
-  images.push(loadImage('./imgs/easy/pipe-v.png'));     // 6
-  images.push(loadImage('./imgs/easy/pipe-h.png'));     // 7
+  // images.push(loadImage('./imgs/easy/blank.png'));      // 0
+  // images.push(loadImage('./imgs/easy/cross.png'));      // 1
+  // images.push(loadImage('./imgs/easy/corner-ne.png'));  // 2
+  // images.push(loadImage('./imgs/easy/corner-nw.png'));  // 3
+  // images.push(loadImage('./imgs/easy/corner-se.png'));  // 4
+  // images.push(loadImage('./imgs/easy/corner-sw.png'));  // 5
+  // images.push(loadImage('./imgs/easy/pipe-v.png'));     // 6
+  // images.push(loadImage('./imgs/easy/pipe-h.png'));     // 7
+
+  for (let i = 0; i <= 12; i++) {
+    images.push(loadImage(`./imgs/circuit/${i}.png`));
+  }
+
+  RULES = loadJSON('/circuit_rules.json');
 }
 
-const RULES = [
-  {
-    UP: [0, 2, 3, 7],
-    LEFT: [0, 3, 5, 6],
-    RIGHT: [0, 2, 4, 6],
-    DOWN: [0, 4, 5, 7],
-  },
-  {
-    UP: [1, 4, 5, 6],
-    LEFT: [1, 2, 4, 7],
-    RIGHT: [1, 3, 5, 7],
-    DOWN: [1, 2, 3, 6],
-  },
-  {
-    UP: [1, 4, 5, 6],
-    LEFT: [0, 3, 5, 6],
-    RIGHT: [1, 3, 5, 7],
-    DOWN: [0, 4, 5, 7],
-  },
-  {
-    UP: [1, 4, 5, 6],
-    LEFT: [1, 2, 4, 7],
-    RIGHT: [0, 2, 4, 6],
-    DOWN: [0, 4, 5, 7],
-  },
-  {
-    UP: [0, 2, 3, 7],
-    LEFT: [0, 3, 5, 6],
-    RIGHT: [1, 3, 5, 7],
-    DOWN: [1, 2, 3, 6],
-  },
-  {
-    UP: [0, 2, 3, 7],
-    LEFT: [1, 2, 4, 7],
-    RIGHT: [0, 2, 4, 6],
-    DOWN: [1, 2, 3, 6],
-  },
-  {
-    UP: [1, 4, 5, 6],
-    LEFT: [0, 2, 4, 6],
-    RIGHT: [0, 2, 4, 6],
-    DOWN: [0, 2, 4, 6],
-  },
-  {
-    UP: [0, 2, 3, 7],
-    LEFT: [1, 2, 4, 7],
-    RIGHT: [1, 3, 5, 7],
-    DOWN: [0, 4, 5, 7],
-  },
-];
+function rotateRule(rule) {
+  // Rotate 90deg clockwise
+  let ruleCopy = rule.map(sub => sub.slice());
+  let last = ruleCopy[ruleCopy.length - 1].slice();
+  ruleCopy.unshift(last);
+  return ruleCopy;
+}
 
-const GRID_SIZE = 49;
+// const RULES = [
+//   {
+//     UP: [0, 2, 3, 7],
+//     LEFT: [0, 3, 5, 6],
+//     RIGHT: [0, 2, 4, 6],
+//     DOWN: [0, 4, 5, 7],
+//   },
+//   {
+//     UP: [1, 4, 5, 6],
+//     LEFT: [1, 2, 4, 7],
+//     RIGHT: [1, 3, 5, 7],
+//     DOWN: [1, 2, 3, 6],
+//   },
+//   {
+//     UP: [1, 4, 5, 6],
+//     LEFT: [0, 3, 5, 6],
+//     RIGHT: [1, 3, 5, 7],
+//     DOWN: [0, 4, 5, 7],
+//   },
+//   {
+//     UP: [1, 4, 5, 6],
+//     LEFT: [1, 2, 4, 7],
+//     RIGHT: [0, 2, 4, 6],
+//     DOWN: [0, 4, 5, 7],
+//   },
+//   {
+//     UP: [0, 2, 3, 7],
+//     LEFT: [0, 3, 5, 6],
+//     RIGHT: [1, 3, 5, 7],
+//     DOWN: [1, 2, 3, 6],
+//   },
+//   {
+//     UP: [0, 2, 3, 7],
+//     LEFT: [1, 2, 4, 7],
+//     RIGHT: [0, 2, 4, 6],
+//     DOWN: [1, 2, 3, 6],
+//   },
+//   {
+//     UP: [1, 4, 5, 6],
+//     LEFT: [0, 2, 4, 6],
+//     RIGHT: [0, 2, 4, 6],
+//     DOWN: [0, 2, 4, 6],
+//   },
+//   {
+//     UP: [0, 2, 3, 7],
+//     LEFT: [1, 2, 4, 7],
+//     RIGHT: [1, 3, 5, 7],
+//     DOWN: [0, 4, 5, 7],
+//   },
+// ];
+
+const GRID_SIZE = 9;
 
 let grid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => undefined));
 
-let generating = true;
+let generating = false;
 
 function copyArray(array) {
   return array.map(row => row.slice());
 }
 
+function isSameArray(a1, a2) {
+  return a1.join('') === a2.join('');
+}
+
 function setup() {
   createCanvas(600, 600);
 
+  RULES = Object.values(RULES);
+
   grid[3][2] = 1;
-  grid[4][3] = 2;
-  grid[5][2] = 5;
-  grid[4][1] = 7;
+  grid[4][3] = 7;
+  grid[5][2] = 1;
+  grid[4][1] = 2;
 }
 
 function draw() {
@@ -120,6 +144,7 @@ function iterate() {
       for (let j = 0; j < GRID_SIZE; j++) {
         if (grid[i][j] !== undefined) continue;
         const possible = findPossible(i, j);
+        // if (possible.length === 0) return console.log('Didn\'t work this time buddy');
 
         if (possible.length === n) cellsWithEntropyN.push({ possible, i, j, n });
       }
@@ -159,12 +184,53 @@ function findPossible(i, j) {
     }
   }
 
-  let possibleFromEachNeighbour = [];
+  let potential = Array.from({ length: 4 }, () => undefined);
   for (let n = 0; n < 4; n++) {
     if (neighbours[n] === undefined) continue;
-    const rulesForNeighbour = RULES[neighbours[n]];
-    possibleFromEachNeighbour.push(rulesForNeighbour[Object.keys(rulesForNeighbour)[3 - n]]);
+    // const rulesForNeighbour = RULES[neighbours[n]];
+    // possibleFromEachNeighbour.push(rulesForNeighbour[Object.keys(rulesForNeighbour)[3 - n]]);
+
+    const ruleIndex = n < 2 ? 2 - n : 9 - 3 * n;
+
+    const colorsOnBorder = RULES[neighbours[n]][ruleIndex];
+    potential[n < 2 ? 3 * n : n - 1] = colorsOnBorder.slice();
   }
 
-  return getCommonElements(possibleFromEachNeighbour);
+  let potentials = [];
+  if (potential.includes(undefined)) {
+
+  } else potentials.push(potential);
+
+
+  let possibles = [];
+  for (const image of RULES) {
+    let imageCopy = copyArray(image);
+    let potentialCopy = potential.map(sub => sub !== undefined ? sub.slice() : sub);
+    for (const index of indexesOf(potentialCopy, undefined).sort((a, b) => b - a)) {
+      imageCopy.splice(index, 1);
+      potentialCopy.splice(index, 1);
+    }
+    if (imageCopy.join('') === potentialCopy.join('')) possibles.push(RULES.indexOf(image));
+  }
+
+  return possibles;
+}
+
+function generateAllPossibleBorders() {
+  const possibles = [];
+  for (let x = 0; x <= 3; x++) {
+    for (let y = 0; y <= 3; y++) {
+      for (let z = 0; z <= 3; z++) {
+        possibles.push([x, y, z]);
+      }
+    }
+  }
+  return possibles;
+}
+
+function indexesOf(array, val) {
+  return array.reduce((acc, el, i) => {
+    if (el === val) acc.push(i);
+    return acc;
+  }, []);
 }
