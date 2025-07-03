@@ -29,6 +29,22 @@ function rotateRule(rule) {
   return ruleCopy;
 }
 
+function rotateImage(image, angle) {
+  if (angle === undefined) angle = PI / 2;
+  let pg = createGraphics(image.width, image.height);
+
+  pg.push();
+  pg.translate(pg.width / 2, pg.height / 2);
+  pg.rotate(angle);
+  pg.imageMode(CENTER);
+  pg.image(image, 0, 0);
+  pg.pop();
+
+  const rotatedImage = pg.get();
+  pg.remove();
+  return rotatedImage;
+}
+
 // const RULES = [
 //   {
 //     UP: [0, 2, 3, 7],
@@ -99,10 +115,29 @@ function setup() {
 
   RULES = Object.values(RULES);
 
-  grid[3][2] = 1;
-  grid[4][3] = 7;
-  grid[5][2] = 1;
-  grid[4][1] = 2;
+  const imagesCopy = images.slice();
+  for (let i = 0; i < imagesCopy.length; i++) {
+    for (let n = 1; n <= 3; n++) {
+      images.splice(4 * i + n, 0, rotateImage(imagesCopy[i], n * PI / 2));
+      RULES.splice(4 * i + n, 0, rotateRule(RULES[i + n - 1]));
+    }
+  }
+
+  // grid[3][2] = 1;
+  // grid[4][3] = 7;
+  // grid[5][2] = 1;
+  // grid[4][1] = 2;
+
+  // let x = 0;
+  // let y = 0;
+  // for (let i = 0; i < images.length; i++) {
+  //   grid[y][x] = i;
+  //   x++;
+  //   if (x === GRID_SIZE) {
+  //     x = 0;
+  //     y++;
+  //   }
+  // }
 }
 
 function draw() {
