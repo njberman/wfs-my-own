@@ -5,20 +5,14 @@ let RULES;
 const ALL_POSSIBLE_BORDERS = generateAllPossibleBorders();
 
 function preload() {
-  // images.push(loadImage('./imgs/easy/blank.png'));      // 0
-  // images.push(loadImage('./imgs/easy/cross.png'));      // 1
-  // images.push(loadImage('./imgs/easy/corner-ne.png'));  // 2
-  // images.push(loadImage('./imgs/easy/corner-nw.png'));  // 3
-  // images.push(loadImage('./imgs/easy/corner-se.png'));  // 4
-  // images.push(loadImage('./imgs/easy/corner-sw.png'));  // 5
-  // images.push(loadImage('./imgs/easy/pipe-v.png'));     // 6
-  // images.push(loadImage('./imgs/easy/pipe-h.png'));     // 7
-
   for (let i = 0; i <= 12; i++) {
+  // for (let i = 0; i <= 3; i++) {
     images.push(loadImage(`./imgs/circuit/${i}.png`));
+    // images.push(loadImage(`./imgs/easy/${i}.png`));
   }
 
   RULES = loadJSON('/circuit_rules.json');
+  // RULES = loadJSON('/easy_rules.json');
 }
 
 function rotateRule(rule) {
@@ -26,6 +20,7 @@ function rotateRule(rule) {
   let ruleCopy = rule.map(sub => sub.slice());
   let last = ruleCopy[ruleCopy.length - 1].slice();
   ruleCopy.unshift(last);
+  ruleCopy.pop();
   return ruleCopy;
 }
 
@@ -45,58 +40,7 @@ function rotateImage(image, angle) {
   return rotatedImage;
 }
 
-// const RULES = [
-//   {
-//     UP: [0, 2, 3, 7],
-//     LEFT: [0, 3, 5, 6],
-//     RIGHT: [0, 2, 4, 6],
-//     DOWN: [0, 4, 5, 7],
-//   },
-//   {
-//     UP: [1, 4, 5, 6],
-//     LEFT: [1, 2, 4, 7],
-//     RIGHT: [1, 3, 5, 7],
-//     DOWN: [1, 2, 3, 6],
-//   },
-//   {
-//     UP: [1, 4, 5, 6],
-//     LEFT: [0, 3, 5, 6],
-//     RIGHT: [1, 3, 5, 7],
-//     DOWN: [0, 4, 5, 7],
-//   },
-//   {
-//     UP: [1, 4, 5, 6],
-//     LEFT: [1, 2, 4, 7],
-//     RIGHT: [0, 2, 4, 6],
-//     DOWN: [0, 4, 5, 7],
-//   },
-//   {
-//     UP: [0, 2, 3, 7],
-//     LEFT: [0, 3, 5, 6],
-//     RIGHT: [1, 3, 5, 7],
-//     DOWN: [1, 2, 3, 6],
-//   },
-//   {
-//     UP: [0, 2, 3, 7],
-//     LEFT: [1, 2, 4, 7],
-//     RIGHT: [0, 2, 4, 6],
-//     DOWN: [1, 2, 3, 6],
-//   },
-//   {
-//     UP: [1, 4, 5, 6],
-//     LEFT: [0, 2, 4, 6],
-//     RIGHT: [0, 2, 4, 6],
-//     DOWN: [0, 2, 4, 6],
-//   },
-//   {
-//     UP: [0, 2, 3, 7],
-//     LEFT: [1, 2, 4, 7],
-//     RIGHT: [1, 3, 5, 7],
-//     DOWN: [0, 4, 5, 7],
-//   },
-// ];
-
-const GRID_SIZE = 9;
+const GRID_SIZE = 10;
 
 let grid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => undefined));
 
@@ -119,11 +63,26 @@ function setup() {
   for (let i = 0; i < imagesCopy.length; i++) {
     for (let n = 1; n <= 3; n++) {
       images.splice(4 * i + n, 0, rotateImage(imagesCopy[i], n * PI / 2));
-      RULES.splice(4 * i + n, 0, rotateRule(RULES[i + n - 1]));
+      RULES.splice(4 * i + n, 0, rotateRule(RULES[4 * i + n - 1]));
     }
   }
 
-  // grid[3][2] = 1;
+  // images.splice(0, 3);
+  // RULES.splice(0, 3);
+  //
+  // images.splice(9, 2);
+  // RULES.splice(9, 2);
+  //
+  // images.splice(19, 2);
+  // RULES.splice(19, 2);
+  //
+  // images.splice(21, 2);
+  // RULES.splice(21, 2);
+  //
+  // images.splice(31, 2);
+  // RULES.splice(31, 2);
+
+  // grid[5][2] = 16;
   // grid[4][3] = 7;
   // grid[5][2] = 1;
   // grid[4][1] = 2;
@@ -163,11 +122,12 @@ function draw() {
 function keyPressed() {
   if (key === ' ') {
     generating = !generating;
+    // iterate();
   }
 }
 
 function mousePressed() {
-  findPossible(Math.floor(mouseY / (height / GRID_SIZE)), Math.floor(mouseX / (width / GRID_SIZE)));
+  console.log(findPossible(Math.floor(mouseY / (height / GRID_SIZE)), Math.floor(mouseX / (width / GRID_SIZE))));
 }
 
 function iterate() {
